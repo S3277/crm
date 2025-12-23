@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Lead } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,8 +20,9 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import AddLeadModal from '../components/AddLeadModal';
-import ImportCSVModal from '../components/ImportCSVModal';
+
+const AddLeadModal = lazy(() => import('../components/AddLeadModal'));
+const ImportCSVModal = lazy(() => import('../components/ImportCSVModal'));
 
 export default function LeadsPage() {
   const { user } = useAuth();
@@ -44,14 +45,8 @@ export default function LeadsPage() {
     if (user) {
       loadLeads();
       const cleanup = subscribeToLeads();
-      
-      // Fallback: Poll for new leads every 5 seconds
-      const pollInterval = setInterval(() => {
-        loadLeads();
-      }, 5000);
-      
+
       return () => {
-        clearInterval(pollInterval);
         cleanup();
       };
     }
@@ -286,22 +281,30 @@ export default function LeadsPage() {
         )}
       </AnimatePresence>
 
-      <AddLeadModal
-        isOpen={showAddModal}
-        onClose={handleCloseAddModal}
-        onSuccess={(message) => setNotification({ type: 'success', message })}
-        onError={(message) => setNotification({ type: 'error', message })}
-        userId={user!.id}
-        editLead={editingLead}
-      />
+      <Suspense fallback={null}>
+        {showAddModal && (
+          <AddLeadModal
+            isOpen={showAddModal}
+            onClose={handleCloseAddModal}
+            onSuccess={(message) => setNotification({ type: 'success', message })}
+            onError={(message) => setNotification({ type: 'error', message })}
+            userId={user!.id}
+            editLead={editingLead}
+          />
+        )}
+      </Suspense>
 
-      <ImportCSVModal
-        isOpen={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        onSuccess={(message) => setNotification({ type: 'success', message })}
-        onError={(message) => setNotification({ type: 'error', message })}
-        userId={user!.id}
-      />
+      <Suspense fallback={null}>
+        {showImportModal && (
+          <ImportCSVModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            onSuccess={(message) => setNotification({ type: 'success', message })}
+            onError={(message) => setNotification({ type: 'error', message })}
+            userId={user!.id}
+          />
+        )}
+      </Suspense>
 
       <motion.div
         initial={{ opacity: 0, y: -20 }}

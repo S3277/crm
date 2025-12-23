@@ -14,11 +14,10 @@ import {
 import { Button } from '../components/ui/button';
 import { GlowingEffect } from '../components/ui/glowing-effect';
 
-const TRIGGER_ID = '00000000-0000-0000-0000-000000000001';
-
 export default function AutomationPage() {
   const { user } = useAuth();
   const [trigger, setTrigger] = useState<Trigger | null>(null);
+  const [triggerId, setTriggerId] = useState<string | null>(null);
   const [logs, setLogs] = useState<AutomationLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -47,11 +46,11 @@ export default function AutomationPage() {
 
   const loadTriggerState = async () => {
     try {
-      console.log('Loading trigger state for ID:', TRIGGER_ID);
+      console.log('Loading trigger state for user:', user!.id);
       const { data, error } = await supabase
         .from('triggers')
         .select('*')
-        .eq('id', TRIGGER_ID)
+        .eq('user_id', user!.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -63,7 +62,7 @@ export default function AutomationPage() {
         const { data: newTrigger, error: insertError } = await supabase
           .from('triggers')
           .insert({
-            id: TRIGGER_ID,
+            user_id: user!.id,
             start_calling: false,
             start_qualifying: false,
           })
@@ -73,8 +72,10 @@ export default function AutomationPage() {
         if (insertError) throw insertError;
         console.log('New trigger created:', newTrigger);
         setTrigger(newTrigger);
+        setTriggerId(newTrigger.id);
       } else {
         setTrigger(data);
+        setTriggerId(data.id);
       }
     } catch (error: any) {
       setNotification({ type: 'error', message: error.message });
@@ -186,6 +187,11 @@ export default function AutomationPage() {
   const handleToggleAutomation = async (
     type: 'start_calling' | 'start_qualifying'
   ) => {
+    if (!triggerId) {
+      setNotification({ type: 'error', message: 'Trigger not initialized' });
+      return;
+    }
+
     // Force clear any stuck state
     processingRef.current.delete(type);
     setActionLoading(null);
@@ -207,7 +213,8 @@ export default function AutomationPage() {
           updated_by: user!.id,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', TRIGGER_ID)
+        .eq('id', triggerId)
+        .eq('user_id', user!.id)
         .select();
 
       if (updateError) {
@@ -255,6 +262,8 @@ export default function AutomationPage() {
 
       // Reset to false after 3 seconds (non-blocking)
       setTimeout(async () => {
+        if (!triggerId) return;
+
         try {
           const { data: resetData } = await supabase
             .from('triggers')
@@ -263,7 +272,8 @@ export default function AutomationPage() {
               updated_by: user!.id,
               updated_at: new Date().toISOString(),
             })
-            .eq('id', TRIGGER_ID)
+            .eq('id', triggerId)
+            .eq('user_id', user!.id)
             .select();
 
           if (resetData && resetData.length > 0) {

@@ -45,6 +45,7 @@ export interface Lead {
 
 export interface Trigger {
   id: string;
+  user_id: string;
   start_calling: boolean;
   start_qualifying: boolean;
   updated_at: string;
