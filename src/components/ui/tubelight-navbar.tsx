@@ -28,11 +28,11 @@ export function NavBar({ items, className, currentPage, onNavigate }: NavBarProp
   return (
     <div
       className={cn(
-        'fixed bottom-0 sm:top-0 left-1/2 -translate-x-1/2 z-50 mb-6 sm:pt-6',
+        'fixed bottom-4 sm:top-0 left-1/2 -translate-x-1/2 z-40 sm:pt-6 px-4 sm:px-0 w-full sm:w-auto',
         className
       )}
     >
-      <div className="flex items-center gap-2 bg-white dark:bg-black border border-slate-300 dark:border-slate-700 backdrop-blur-xl py-2 px-2 rounded-3xl shadow-lg">
+      <div className="flex items-center justify-center gap-2 bg-white dark:bg-black border border-slate-300 dark:border-slate-700 backdrop-blur-xl py-2 px-2 rounded-3xl shadow-lg max-w-fit mx-auto">
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.name;
