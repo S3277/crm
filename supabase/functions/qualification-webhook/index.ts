@@ -6,12 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
+function formatPhoneNumber(phone: string | null | undefined): string {
+  if (!phone) return '';
+
+  const digitsOnly = phone.replace(/\D/g, '');
+
+  if (digitsOnly.length === 10) {
+    return `+1${digitsOnly}`;
+  }
+
+  if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    return `+${digitsOnly}`;
+  }
+
+  if (phone.startsWith('+')) {
+    return phone;
+  }
+
+  return `+1${digitsOnly}`;
+}
+
 interface WebhookPayload {
-  lead_id: string;
-  status: 'hot' | 'warm' | 'cold' | 'uninterested';
-  action_type: 'calling' | 'qualifying';
+  lead_id?: string;
+  status?: 'hot' | 'warm' | 'cold' | 'uninterested';
+  action_type?: 'calling' | 'qualifying';
   transcript?: string;
   metadata?: Record<string, any>;
+  name?: string;
+  email?: string;
+  phone?: string;
+  user_id?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -29,6 +53,58 @@ Deno.serve(async (req: Request) => {
 
     if (req.method === 'POST') {
       const payload: WebhookPayload = await req.json();
+
+      if (payload.name && payload.phone && !payload.lead_id) {
+        const formattedPhone = formatPhoneNumber(payload.phone);
+
+        if (!payload.user_id) {
+          return new Response(
+            JSON.stringify({ error: 'user_id is required for creating new leads' }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const { data: newLead, error: createError } = await supabase
+          .from('leads')
+          .insert({
+            user_id: payload.user_id,
+            name: payload.name,
+            email: payload.email || null,
+            phone: formattedPhone || null,
+            status: payload.status || 'cold',
+            lead_type: 'inbound',
+            source_channel: 'inbound_call',
+            call_result: null,
+          })
+          .select()
+          .maybeSingle();
+
+        if (createError) {
+          console.error('Error creating lead:', createError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to create lead', details: createError.message }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            lead: newLead,
+            message: 'Lead created successfully',
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
 
       if (!payload.lead_id || !payload.status) {
         return new Response(
@@ -55,6 +131,10 @@ Deno.serve(async (req: Request) => {
         status: payload.status,
         updated_at: new Date().toISOString(),
       };
+
+      if (payload.phone) {
+        updateData.phone = formatPhoneNumber(payload.phone);
+      }
 
       if (payload.transcript) {
         updateData.transcript = payload.transcript;

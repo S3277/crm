@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, User, Mail, Phone, Tag, Globe, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { supabase, Lead, LeadStatus } from '../lib/supabase';
+import { formatPhoneNumber } from '../lib/utils';
 
 interface AddLeadModalProps {
   isOpen: boolean;
@@ -39,13 +40,15 @@ export default function AddLeadModal({
     setLoading(true);
 
     try {
+      const formattedPhone = formData.phone ? formatPhoneNumber(formData.phone) : null;
+
       if (editLead) {
         const { error } = await supabase
           .from('leads')
           .update({
             name: formData.name,
             email: formData.email || null,
-            phone: formData.phone || null,
+            phone: formattedPhone,
             status: formData.status as LeadStatus,
             lead_type: formData.leadType as 'inbound' | 'outbound',
             source_channel: formData.sourceChannel || null,
@@ -60,7 +63,7 @@ export default function AddLeadModal({
           user_id: userId,
           name: formData.name,
           email: formData.email || null,
-          phone: formData.phone || null,
+          phone: formattedPhone,
           status: formData.status as LeadStatus,
           lead_type: formData.leadType as 'inbound' | 'outbound',
           source_channel: formData.sourceChannel || null,

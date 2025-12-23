@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Upload, FileText, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { supabase } from '../lib/supabase';
+import { formatPhoneNumber } from '../lib/utils';
 
 interface ImportCSVModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ export default function ImportCSVModal({
         user_id: user.id,
         name: lead.name,
         email: lead.email || null,
-        phone: lead.phone || null,
+        phone: lead.phone ? formatPhoneNumber(lead.phone) : null,
         status: lead.status,
         lead_type: 'outbound',
         source_channel: 'cold_call',
