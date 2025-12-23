@@ -15,7 +15,7 @@ interface DashboardGridProps {
 
 export function DashboardGrid({ onNavigate, onProfileClick }: DashboardGridProps) {
   return (
-    <ul className="grid grid-cols-1 grid-rows-none gap-2 md:grid-cols-12 md:grid-rows-4 lg:gap-2 xl:max-h-auto xl:grid-rows-2">
+    <ul className="grid grid-cols-1 grid-rows-none gap-3 md:gap-2 md:grid-cols-12 md:grid-rows-4 lg:gap-2 xl:max-h-auto xl:grid-rows-2">
       <GridItem
         area="md:[grid-area:1/1/2/7] xl:[grid-area:1/1/2/4]"
         icon={<BarChart3 className="h-4 w-4" />}
@@ -82,10 +82,10 @@ const GridItem = ({ area, icon, title, description, onClick, clickable, isLarge,
   };
 
   return (
-    <li className={`min-h-[8rem] list-none ${area}`}>
-      <div 
+    <li className={`min-h-[10rem] md:min-h-[8rem] list-none ${area}`}>
+      <div
         className={cn(
-          'relative h-full rounded-[1.25rem] border-2 border-slate-300 dark:border-slate-600',
+          'relative h-full min-h-[10rem] md:min-h-[8rem] rounded-[1.25rem] border-2 border-slate-300 dark:border-slate-600',
           clickable && 'cursor-pointer'
         )}
       >
@@ -100,18 +100,18 @@ const GridItem = ({ area, icon, title, description, onClick, clickable, isLarge,
             borderWidth={4}
           />
         </div>
-        
+
         {/* Interactive content - higher z-index */}
-        <div className="relative z-10 flex h-full flex-col justify-between gap-3 rounded-xl border-[0.75px] bg-background p-4 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)] md:p-4">
-          <div className={cn('flex flex-1 flex-col justify-start gap-3', isLarge && 'overflow-y-auto max-h-[calc(100%-3rem)]')}>
+        <div className="relative z-10 flex h-full min-h-[10rem] md:min-h-[8rem] flex-col justify-between gap-2 md:gap-3 rounded-xl border-[0.75px] bg-background p-4 md:p-4 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)]">
+          <div className={cn('flex flex-1 flex-col justify-start gap-2 md:gap-3', isLarge && 'md:overflow-y-auto md:max-h-[calc(100%-3rem)]')}>
             <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
               {icon}
             </div>
-            <div className="space-y-3">
-              <h3 className="pt-0.5 text-xl leading-[1.375rem] font-semibold font-sans tracking-[-0.04em] md:text-2xl md:leading-[1.875rem] text-balance text-foreground">
+            <div className="space-y-1.5 md:space-y-3">
+              <h3 className="pt-0.5 text-lg md:text-xl lg:text-2xl leading-tight font-semibold font-sans tracking-[-0.04em] text-balance text-foreground">
                 {title}
               </h3>
-              <p className="[&_b]:md:font-semibold [&_strong]:md:font-semibold font-sans text-sm leading-[1.125rem] md:text-base md:leading-[1.375rem] text-muted-foreground">
+              <p className="[&_b]:md:font-semibold [&_strong]:md:font-semibold font-sans text-xs md:text-sm lg:text-base leading-tight md:leading-[1.125rem] lg:leading-[1.375rem] text-muted-foreground">
                 {description}
               </p>
             </div>
@@ -120,7 +120,11 @@ const GridItem = ({ area, icon, title, description, onClick, clickable, isLarge,
             <button
               onClick={handleDetailsClick}
               type="button"
-              className={cn('flex-shrink-0 flex items-center', buttonAlign === 'start' ? 'justify-start' : 'justify-end', 'text-xs text-muted-foreground hover:text-cyan-400 transition-all duration-300 cursor-pointer bg-transparent border-none p-0 mt-auto')}
+              className={cn(
+                'flex-shrink-0 flex items-center',
+                buttonAlign === 'start' ? 'justify-start' : 'justify-end',
+                'text-xs md:text-xs text-muted-foreground hover:text-cyan-400 transition-all duration-300 cursor-pointer bg-transparent border-none p-0 mt-2 md:mt-auto font-medium'
+              )}
             >
               View details →
             </button>
